@@ -1,3 +1,5 @@
+# 书籍
+- react设计原理 卡颂
 # 运行时和编译时的区别 AOT（构建时编译/预编译）和JIT（即时编译）的区别
 - 运行时更像是命令式编程，类似vue提供的h函数，让我们直接生成对应的vnode
 - 编译时更像是的声明式编程，内部也是调用命令式实现的。类似于我们直接写template，内部会转换为调用h函数的结果
@@ -58,3 +60,71 @@ console.log(isClassComponent(MyClassComponent)); // true
 - 使用Immutable进行属性的比对
 - 组件懒加载 Suspense
 - 
+# react为什么要废弃三个生命周期
+- componentWillMount componentWillUpdate componentsWillRecieveProps
+- 这三个生命周期都是在render阶段执行的，因为fiber架构的出现，导致render的时候是可以中断的，当一个任务执行到一半被打断后，下一次渲染线程抢回主动权时，这个任务被重启的形式是“**重复执行一遍整个任务”而非“接着上次执行到的那行代码往下走**”。这就导致 render 阶段的生命周期都是有可能被重复执行的
+
+# react和vue的异同点
+  相同
+  - 都使用虚拟dom，并且都支持跨平台开发
+  - 都是组件化思想
+  - 都是响应式的
+
+不同点
+ - react是MVC框架，单向数据流，vue是MVVM框架，双向数据流，实现了双向绑定
+ - 事件处理不同，react使用事件委托进行事件监听， vue直接事件绑定
+ - react使用jsx语法，vue使用模板语法，因此vue在构建阶段就能做静态分析，优化diff算法部分，而jsx由于得函数执行后才知道返回什么，所以这方面优化程度有限，因此才有了fiber架构
+ - vue因为做了依赖收集，所以更新的颗粒度更小，可以限制到某个组件，而react父组件更新，如果不做任何优化的情况下，下面所有子组件都需要全量更新，vue相当于帮我们做了shouldComponentUpdate方法
+
+# react闭包陷阱怎么处理
+```js
+const FunctionComponent = () => {
+  const [value, setValue] = useState(1)
+
+  const log = () => {
+    setTimeout(() => {
+      alert(value)
+    }, 3000);
+  }
+
+  return (
+    <div>
+      <p>FunctionComponent</p>
+      <div>value: {value}</div>
+      <button onClick={log}>alert</button>
+      <button onClick={() => setValue(value + 1)}>add</button>
+    </div>
+  )
+}
+```
+使用useRef储存，因为ref的赋值是同步的
+```js
+const FunctionComponent = () => {
+  const [value, setValue] = useState(1)
+  const countRef = useRef(value)
+
+  const log = () => {
+    setTimeout(() => {
+      alert(countRef.current)
+    }, 3000);
+  }
+
+  useEffect(() => {
+    countRef.current = value
+  }, [value])
+
+  return (
+    <div>
+      <p>FunctionComponent</p>
+      <div>value: {value}</div>
+      <button onClick={log}>alert</button>
+      <button onClick={() => setValue(value + 1)}>add</button>
+    </div>
+  )
+}
+
+```
+
+# 组件懒加载
+- 使用react.lazy，vue使用defineAsyncComponent
+  
