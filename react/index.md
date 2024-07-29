@@ -16,12 +16,50 @@
 #  为什么react需要fiber&时间分片而vue没有
 - react组件更新的时候，默认是全量更新，父组件一旦更新，所有子组件都要更新，所以diff阶段会花费很多时间，有大概率会造成页面卡顿，所以需要时间切片
 - vue因为使用template模版，可以做静态分析，更新的时候只会更新需要的组件，所以diff的节点会比较少，用到切片的概率很小，作者认为vue没有太大必要引入时间切片，收益不大
-- (https://github.com/vuejs/rfcs/issues/89)
+- https://github.com/vuejs/rfcs/issues/89
 #  组件渲染优化
  -  function组件可以使用react.memo进行缓存，如果props没变化组件不会重新渲染，类似于class组件的pureComponent，都是采用object.is来比较新老props
   
 # createPortal与vue的teleport相似，可以将节点插入到任意为止
 
+# React 中为什么不直接使用 requestIdleCallback？ TODO 具体使用了什么？？
+- 执行时机不是完全可控 兼容性问题
+- 执行的优先级很低，react需要自主可控的来分配各个任务的优先级
+- https://github.com/facebook/react/issues/7942
+
+# 为什么不能在循环、条件或嵌套函数中调用 Hooks？
+- 因为hooks实际上就是链表结构进行保存
+- 函数式组件每次更新的时候，都是重新执行一遍函数。类似于useState，每次重新执行的时候需要保留新的值而不是初始值，useState内部并没有**状态命名**这种东西，如果有多个useState，内部并不知道该把具体的值返回给哪个state，所以需要保证hooks的执行顺序在每次渲染的时候都是统一的，才能把具体的值一一返回给对应的state。
+
+# 判断一个 React 组件是 class component 还是 function component？
+class组件 在原型上有一个isReactComponent属性为true
+``` js
+function isClassComponent(component) {
+  return (
+    typeof component === 'function' &&
+    !!component.prototype.isReactComponent
+  );
+}
+
+// 示例用法
+const MyComponent = () => <div>Hello, I'm a function component!</div>;
+const MyClassComponent = class extends React.Component {
+  render() {
+    return <div>Hello, I'm a class component!</div>;
+  }
+};
+
+console.log(isClassComponent(MyComponent)); // false
+console.log(isClassComponent(MyClassComponent)); // true
+
+```
+
+# react中的性能优化
+- 合理利用shouldComponentUpdate，防止子组件的重新渲染，函数式组件可是使用useMemo配合react.memo
+- 添加唯一的key 优化diff算法
+- 使用Immutable进行属性的比对
+- 组件懒加载 Suspense
+- 
 # react为什么要废弃三个生命周期
 - componentWillMount componentWillUpdate componentsWillRecieveProps
 - 这三个生命周期都是在render阶段执行的，因为fiber架构的出现，导致render的时候是可以中断的，当一个任务执行到一半被打断后，下一次渲染线程抢回主动权时，这个任务被重启的形式是“**重复执行一遍整个任务”而非“接着上次执行到的那行代码往下走**”。这就导致 render 阶段的生命周期都是有可能被重复执行的
