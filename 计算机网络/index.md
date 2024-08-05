@@ -13,4 +13,9 @@
   - nginx代理
 
 
- 
+ # cookie的前世今生
+ - cookie的出现主要是为了解决http请求无状态的问题，让服务器知道是哪个用户在访问数据
+ - 将token放在自定义头部 可以有效的防止CORS
+ - 防止cors还可以在服务器判断请求的origin和referer，也可以在设置cookie的时候设置SameSite 
+ - 防止xss攻击设置HttpOnly 不运行通过脚本获取cookie的值
+ - 既然可以直接通过cookie鉴权，前端为什么还要在Authorization 中设置token？ 因为api设计不一定是给浏览器使用的，如果是其他系统，并没有cookie这东西，所以Authorization 更加通用
