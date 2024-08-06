@@ -43,6 +43,31 @@
 - 纯编译时 使用compile函数，将html直接编译成js代码进行dom的挂载
 
 
+
+
+# vue2为什么不能使用下标修改数组，vue3可以
+https://juejin.cn/post/7350585600859308084
+-首先数组长度的完全不固定的，所以你无法在定义初期就给他设置defineProperty进行劫持，这个方案根本就是不可行的，其次数组数据量一多的话，给他们都做劫持是非常耗性能的，而且没有太多的必要。所以vue2选择重写数组的方法，来进行依赖的收集
+- vue3的话使用proxy是可以劫持到未定义的索引值的设置，所以不需要$set这个api了，但是他也重写了数组的方法，主要是因为一些比如push、pop等方法的执行，首先会收集length这个依赖，然后又对他进行set，这会导致无限循环的问题，所以重写这些方法，在调用的时候阻止依赖的收集。那么该方法最终都会修改到数组的元素，所以都会走到set方法中，然后手动将与length相关的effect拿出来执行。
+- vue3还重写一些includes等查找方法的原因是，当数组是如下格式的时候：arr=[{a:1}]，调用查找方法的时候，实际上是在代理对象中找数据，这样的话是找不到的，所以重写方法，主要思路就是现在代理对象中找，找不到再去原始对象中查找
+
+# vue中slot插槽使用响应式数据，组件怎么更新的
+```js
+<Component>{{count}}</Component>
+
+```
+首次渲染的时候，count收集的effect是子组件，所以当父组件中的count值发生变化，自然触发的是子组件的更新，而不是整个父组件的更新
+
+
+# vue中的keepalive
+- 在第一次渲染的时候调用render函数，会在内部的缓存数据中查找，因为第一次是肯定找不到缓存的，所以还是会走基础的组件挂载流程，并且将vnode缓存到cash数据中
+- 当第二次进入组件的时候，执行render函数，从cash中找到缓存的vnode，直接将缓存中的组件实例赋值给vnode，然后设置keepalive属性为true，这样当走到patch函数的时候，判断vnode的keepalive属性是true就不会走组件的mounte过程，而是直接走keepalive组件特有的activite函数，即直接将缓存的真实dom插入到页面中.
+- ![alt text](<截屏2024-07-22 22.45.21.png>)
+- ![alt text](<截屏2024-07-22 22.45.52.png>)
+![alt text](<截屏2024-07-22 22.47.25.png>)
+
+
+！！！但是vue3为什么要加入 创建隐藏容器的操作呢？？？？？
 # vue中vnode的props属性处理
 - html attribute和dom property是有区别的 可以简单的认为html attribute是用来初始化dom property的，在dom属性中不一定能找到与html属性一一对应的值，比如dom中的className 在html中是class，vue首先通过判断key在dom对象中是否存在，存在的话直接设置，不存在再通过setAttribute属性设置
 - 对于class，因为设置classList性能更好，所以在setAttribute、className、classList中选择了className
@@ -95,3 +120,6 @@ https://vue3js.cn/interview/vue3/performance.html#%E4%B8%80%E3%80%81%E7%BC%96%E8
 
 # nextTick的原理 以及vue2和3的区别
 - nextTick主要是在主队列更新完成之后执行一次cb，其主要原理就是利用promise.then实现异步调用，在vue内部会维护一个queue，然后把更新相关的effect放入其中，之后使用resolvedPromise.then(flushJobs) 异步更新队列，而nexttick后的cb最后会以resolvedPromise.then(flushJobs).then(cb)的形式调用
+
+
+

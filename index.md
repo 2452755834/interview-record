@@ -31,3 +31,11 @@ https://github.com/element-plus/element-plus-icons/pull/65
 
 
   
+
+
+
+# 多页签通信，项目中如果一个页面token过期了，然后退出登录并且重新登录了， 这个时候另一个页面再去请求接口会被踢出去登录页怎么办
+- 登录完成之后 把token存在cookie，pinia中也存一份token，这份token是取的cookie中的数据
+- 如果一个页面被踢测出了 那么清空localstorage的数据
+- 再次登录后会更新cookie中的token
+- 这个时候第二个页面请求接口会401，在axios中判断如果cookie中的token和pinia中的不一样，那么吧pinia中的token更新为cookie中最新的token 重新刷新一下页面
