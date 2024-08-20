@@ -12,7 +12,7 @@
 - 组件库按需加载 减少组件库包的体积 或者直接上cdn
    
 
-# react 、vue 、ts、vite、js、css
+# react 、vue 、ts、vite视频+面试题、uniapp（项目+基础面试题）、js、css （大师课）
 
 # 项目优化
 
