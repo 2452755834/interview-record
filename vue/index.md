@@ -121,5 +121,16 @@ https://vue3js.cn/interview/vue3/performance.html#%E4%B8%80%E3%80%81%E7%BC%96%E8
 # nextTick的原理 以及vue2和3的区别
 - nextTick主要是在主队列更新完成之后执行一次cb，其主要原理就是利用promise.then实现异步调用，在vue内部会维护一个queue，然后把更新相关的effect放入其中，之后使用resolvedPromise.then(flushJobs) 异步更新队列，而nexttick后的cb最后会以resolvedPromise.then(flushJobs).then(cb)的形式调用
 
+# vuex为什么需要mutation，并且只能使用同步方法，而pinia去掉了mutation
+
+https://www.zhihu.com/question/48759748/answer/112823337  
+
+vuex需要mutation 完全是为了让devtools能够更好的追踪数据变化
+
+
+# vue是否给v-for绑定事件的时候做代理优化
+
+结论：vue并没有做代理，还是会给每个元素绑定事件，但是绑定的事件是内部封装过的，组件更新的时候只会替换内部实现细节，而不会重新的removeEventListener和addEventListener
+https://juejin.cn/post/7087453491370655751
 
 
